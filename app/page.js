@@ -33,6 +33,8 @@ export default function MemoryGame() {
     unlockedLevels,
     levelScores,
     levelStars,
+    levelNames,
+    levelThemes,
     difficulty,
     timeLeft,
     gameStarted,
@@ -42,6 +44,13 @@ export default function MemoryGame() {
     stars,
     flippedIndices,
     isMusicOn,
+    combo,
+    streak,
+    powerUps,
+    isFrozen,
+    currentLevelName,
+    currentLevelTheme,
+    currentLevelSpecial,
     settings,
 
     // Actions
@@ -51,7 +60,10 @@ export default function MemoryGame() {
     changeLevel,
     nextLevel,
     setShowTutorial,
-    toggleMusic
+    toggleMusic,
+    useHint,
+    useExtraTime,
+    useFreeze
   } = useMemoryGame();
 
   const handleCardClickWithSound = useCallback(
@@ -94,18 +106,38 @@ export default function MemoryGame() {
           >
             Memory Match
           </motion.h1>
-          <div className="flex justify-center items-center gap-4 mb-2">
-            <p className="text-gray-600 dark:text-gray-300">
-              Level {currentLevel + 1} of {totalLevels}
-            </p>
-            <div className="flex items-center gap-1">
-              {[...Array(3)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-4 h-4 ${i < (levelStars[currentLevel] || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
-                />
-              ))}
+          <div className="flex flex-col items-center gap-2 mb-2 px-2">
+            <div className="flex justify-center items-center gap-2 sm:gap-4 flex-wrap">
+              <p className="text-gray-600 dark:text-gray-300 font-medium text-sm sm:text-base text-center">
+                {currentLevelName}
+              </p>
+              <div className="flex items-center gap-1">
+                {[...Array(3)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-3 h-3 sm:w-4 sm:h-4 ${i < (levelStars[currentLevel] || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                  />
+                ))}
+              </div>
             </div>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center px-2">
+              Level {currentLevel + 1} of {totalLevels} • {currentLevelTheme.charAt(0).toUpperCase() + currentLevelTheme.slice(1)} Theme
+              {currentLevelSpecial && ' • ' + (currentLevelSpecial === 'time_pressure' ? '⏱️ Time Pressure' : '')}
+            </p>
+            {(combo > 0 || streak > 0) && (
+              <div className="flex gap-2 sm:gap-3 text-xs sm:text-sm flex-wrap justify-center">
+                {combo > 0 && (
+                  <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full font-medium">
+                    🔥 Combo x{combo}
+                  </span>
+                )}
+                {streak > 0 && (
+                  <span className="bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-1 rounded-full font-medium">
+                    ⚡ Streak {streak}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 max-w-md mx-auto">
             <div
@@ -115,14 +147,14 @@ export default function MemoryGame() {
           </div>
         </header>
 
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mb-4">
           <div className="flex gap-2">
             <button
               onClick={toggleLevelSelect}
-              className="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+              className="px-3 sm:px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
             >
               <Home className="w-4 h-4" />
-              <span>Levels</span>
+              <span className="hidden xs:inline">Levels</span>
             </button>
             <button
               onClick={() => initializeGame(currentLevel)}
@@ -133,34 +165,72 @@ export default function MemoryGame() {
             </button>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Score</div>
-              <div className="font-bold text-indigo-600 dark:text-indigo-400">{totalScore}</div>
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
+            <div className="bg-white dark:bg-gray-800 px-3 sm:px-4 py-2 rounded-lg shadow">
+              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Score</div>
+              <div className="font-bold text-indigo-600 dark:text-indigo-400 text-sm sm:text-base">{totalScore}</div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Time</div>
-              <div className="font-mono font-bold">
+            <div className={`bg-white dark:bg-gray-800 px-3 sm:px-4 py-2 rounded-lg shadow ${isFrozen ? 'ring-2 ring-blue-500' : ''}`}>
+              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                {isFrozen ? '⏸️ Frozen' : 'Time'}
+              </div>
+              <div className="font-mono font-bold text-sm sm:text-base">
                 {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:
                 {(timeLeft % 60).toString().padStart(2, '0')}
               </div>
             </div>
+
+            {/* Power-ups */}
+            {(powerUps.hints > 0 || powerUps.extraTime > 0 || powerUps.freeze > 0) && (
+              <div className="flex gap-1.5 sm:gap-2">
+                {powerUps.hints > 0 && (
+                  <button
+                    onClick={useHint}
+                    disabled={flippedIndices.length > 0 || gameComplete || levelComplete}
+                    className="bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
+                    title={`Hint (${powerUps.hints} left) - Reveals a matching pair`}
+                  >
+                    💡 {powerUps.hints}
+                  </button>
+                )}
+                {powerUps.extraTime > 0 && (
+                  <button
+                    onClick={useExtraTime}
+                    disabled={gameComplete || levelComplete}
+                    className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow hover:bg-green-200 dark:hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
+                    title={`Extra Time (${powerUps.extraTime} left) - Adds 30 seconds`}
+                  >
+                    ⏰ {powerUps.extraTime}
+                  </button>
+                )}
+                {powerUps.freeze > 0 && (
+                  <button
+                    onClick={useFreeze}
+                    disabled={gameComplete || levelComplete || isFrozen}
+                    className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm font-medium"
+                    title={`Freeze (${powerUps.freeze} left) - Freezes timer for 10 seconds`}
+                  >
+                    ❄️ {powerUps.freeze}
+                  </button>
+                )}
+              </div>
+            )}
             
             <button
               onClick={toggleMusic}
-              className={`p-2 rounded-full transition-colors ${isMusicOn
+              className={`p-2 rounded-full transition-colors flex-shrink-0 ${isMusicOn
                   ? 'bg-green-100 text-green-600 hover:bg-green-200'
                   : 'bg-red-100 text-red-600 hover:bg-red-200'
                 }`}
               title={isMusicOn ? "Mute sound" : "Unmute sound"}
             >
               {isMusicOn ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .89-1.077 1.337-1.707.707L5.586 15z" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .89-1.077 1.337-1.707.707L5.586 15z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
                 </svg>
@@ -179,7 +249,7 @@ export default function MemoryGame() {
         />
 
         {/* Game Board */}
-        <div className="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-2xl shadow-md">
+        <div className="bg-white dark:bg-gray-800 p-2 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl shadow-md">
           <GameBoard
             cards={cards}
             flippedIndices={flippedIndices}
@@ -243,6 +313,8 @@ export default function MemoryGame() {
               unlockedLevels={unlockedLevels}
               levelScores={levelScores}
               levelStars={levelStars}
+              levelNames={levelNames}
+              levelThemes={levelThemes}
               onSelectLevel={(level) => {
                 handleNewGame(level);
                 setShowLevelSelect(false);

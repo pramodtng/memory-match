@@ -18,38 +18,38 @@ const ScoreBoard = ({
   };
 
   return (
-    <div className="grid grid-cols-3 gap-4 mb-6">
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
-        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-          <Zap className="w-4 h-4" />
-          <span>Moves</span>
+    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+      <div className="bg-white dark:bg-gray-800 p-2 sm:p-4 rounded-xl shadow-sm">
+        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+          <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span className="hidden xs:inline">Moves</span>
         </div>
-        <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{moves}</div>
+        <div className="text-lg sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">{moves}</div>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
-        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-          <Heart className="w-4 h-4 text-red-500" />
-          <span>Matches</span>
+      <div className="bg-white dark:bg-gray-800 p-2 sm:p-4 rounded-xl shadow-sm">
+        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+          <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
+          <span className="hidden xs:inline">Matches</span>
         </div>
-        <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+        <div className="text-lg sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">
           {matchedPairs} / {totalPairs}
         </div>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
-        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-          <Trophy className="w-4 h-4 text-yellow-500" />
-          <span>Score</span>
+      <div className="bg-white dark:bg-gray-800 p-2 sm:p-4 rounded-xl shadow-sm">
+        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+          <Trophy className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
+          <span className="hidden xs:inline">Score</span>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+        <div className="flex items-center gap-1 flex-wrap">
+          <span className="text-lg sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">
             {highScore || '--'}
           </span>
           {stars > 0 && (
-            <div className="flex ml-2">
+            <div className="flex ml-1 sm:ml-2">
               {[...Array(stars)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
               ))}
             </div>
           )}

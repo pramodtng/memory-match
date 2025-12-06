@@ -12,7 +12,7 @@ const GameBoard = ({
 }) => {
   return (
     <motion.div 
-      className={`grid ${gridClass} gap-3 md:gap-4`}
+      className={`grid ${gridClass} gap-2 sm:gap-3 md:gap-4`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}

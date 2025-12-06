@@ -49,6 +49,7 @@
   }
 
   /* Utility classes */
+  .animate-shake { animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
   .shake { animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
   .pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
   .bounce { animation: bounce 1s infinite; }
@@ -75,7 +76,21 @@
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .card {
-    @apply w-14 h-14 text-2xl;
+    @apply w-12 h-12;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 375px) {
+  .card {
+    @apply w-10 h-10;
+  }
+}
+
+/* Custom breakpoint for very small text */
+@media (min-width: 475px) {
+  .xs\:inline {
+    display: inline;
   }
 }
 
